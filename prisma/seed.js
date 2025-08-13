@@ -3,8 +3,40 @@ const bcrypt = require('bcryptjs')
 
 const prisma = new PrismaClient()
 
+// Função para aguardar conexão com o banco
+async function waitForDatabase() {
+  let retries = 0
+  const maxRetries = 10
+  
+  while (retries < maxRetries) {
+    try {
+      await prisma.$connect()
+      console.log('✅ Conectado ao banco de dados')
+      return true
+    } catch (error) {
+      retries++
+      console.log(`⏳ Tentativa ${retries}/${maxRetries} de conexão com o banco...`)
+      await new Promise(resolve => setTimeout(resolve, 2000))
+    }
+  }
+  
+  throw new Error('❌ Não foi possível conectar ao banco de dados após várias tentativas')
+}
+
 async function main() {
   console.log('🌱 Iniciando seed do banco de dados...')
+
+  // Aguardar conexão com o banco
+  await waitForDatabase()
+
+  // Verificar se o banco está funcionando
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    console.log('✅ Banco de dados está funcionando')
+  } catch (error) {
+    console.error('❌ Erro ao testar banco de dados:', error)
+    throw error
+  }
 
   // Create admin user
   const hashedPassword = await bcrypt.hash('admin123', 12)
