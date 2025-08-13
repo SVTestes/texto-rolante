@@ -6,6 +6,19 @@ echo "🚀 Iniciando Sistema de Texto Rolante..."
 echo "⏳ Aguardando banco de dados..."
 sleep 5
 
+# Executar migrações do Prisma
+echo "🔧 Executando migrações do banco de dados..."
+npx prisma migrate deploy
+
+# Verificar se as migrações foram executadas com sucesso
+if [ $? -eq 0 ]; then
+    echo "✅ Migrações executadas com sucesso!"
+else
+    echo "❌ Erro ao executar migrações, tentando novamente..."
+    sleep 3
+    npx prisma migrate deploy
+fi
+
 # Executar seed do banco de dados
 echo "🌱 Executando seed do banco de dados..."
 node prisma/seed.js
