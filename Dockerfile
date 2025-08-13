@@ -25,6 +25,9 @@ ENV NODE_ENV production
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
+# Executar migrações do Prisma (criar schema)
+RUN npx prisma migrate deploy
+
 # Build da aplicação
 RUN npm run build
 
