@@ -9,11 +9,11 @@ FROM base AS deps
 WORKDIR /app
 
 # Copiar arquivos de dependências
-COPY package.json package-lock.json* ./
+COPY package.json ./
 COPY prisma ./prisma/
 
 # Instalar todas as dependências (incluindo dev para Prisma)
-RUN npm ci
+RUN npm install
 
 # Gerar cliente Prisma
 RUN npx prisma generate
