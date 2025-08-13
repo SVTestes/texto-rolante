@@ -10,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model user {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String
@@ -18,19 +18,25 @@ model User {
   isAdmin   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("user")
 }
 
-model Phrase {
+model phrase {
   id       String @id @default(cuid())
   text     String
   order    Int
   isActive Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("phrase")
 }
 
-model Settings {
+model settings {
   id        String @id @default("default")
   scrollSpeed Int  @default(50)
   updatedAt DateTime @updatedAt
+
+  @@map("settings")
 }
