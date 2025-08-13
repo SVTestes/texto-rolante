@@ -4,7 +4,7 @@ FROM node:18-alpine AS base
 # Instalar dependências necessárias
 RUN apk add --no-cache libc6-compat
 
-# Dependências de produção
+# Dependências (incluindo dev para Prisma)
 FROM base AS deps
 WORKDIR /app
 
@@ -12,8 +12,8 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
-# Instalar dependências
-RUN npm ci --only=production
+# Instalar todas as dependências (incluindo dev para Prisma)
+RUN npm ci
 
 # Gerar cliente Prisma
 RUN npx prisma generate
