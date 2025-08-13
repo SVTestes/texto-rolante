@@ -1,53 +1,57 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    let settings = await prisma.settings.findFirst()
+    const session = await getServerSession(authOptions)
     
-    if (!settings) {
-      settings = await prisma.settings.create({
-        data: { scrollSpeed: 50 }
-      })
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
-    
+
+    const settings = await prisma.settings.findUnique({
+      where: { id: 'default' },
+    })
+
+    if (!settings) {
+      return NextResponse.json({ error: 'Configurações não encontradas' }, { status: 404 })
+    }
+
     return NextResponse.json(settings)
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Erro ao buscar configurações:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
 
-export async function PUT(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export async function PUT(request: Request) {
   try {
-    const { scrollSpeed } = await request.json()
+    const session = await getServerSession(authOptions)
     
-    if (typeof scrollSpeed !== 'number' || scrollSpeed < 1 || scrollSpeed > 100) {
-      return NextResponse.json({ error: 'Invalid scroll speed' }, { status: 400 })
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    let settings = await prisma.settings.findFirst()
+    const { scrollspeed } = await request.json()
     
-    if (settings) {
-      settings = await prisma.settings.update({
-        where: { id: settings.id },
-        data: { scrollSpeed }
-      })
-    } else {
-      settings = await prisma.settings.create({
-        data: { scrollSpeed }
-      })
+    if (typeof scrollspeed !== 'number' || scrollspeed < 1 || scrollspeed > 200) {
+      return NextResponse.json({ error: 'Velocidade deve ser um número entre 1 e 200' }, { status: 400 })
     }
+
+    const settings = await prisma.settings.upsert({
+      where: { id: 'default' },
+      update: { scrollspeed },
+      create: {
+        id: 'default',
+        scrollspeed,
+      },
+    })
 
     return NextResponse.json(settings)
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Erro ao atualizar configurações:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

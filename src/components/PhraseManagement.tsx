@@ -8,15 +8,17 @@ interface Phrase {
   id: string
   text: string
   order: number
+  isactive: boolean
 }
 
 export default function PhraseManagement() {
   const [phrases, setPhrases] = useState<Phrase[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
-  const [newPhrase, setNewPhrase] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editingText, setEditingText] = useState('')
+  const [newPhrase, setNewPhrase] = useState('')
+  const [editText, setEditText] = useState('')
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetchPhrases()
@@ -28,51 +30,58 @@ export default function PhraseManagement() {
       if (response.ok) {
         const data = await response.json()
         setPhrases(data)
+      } else {
+        setError('Erro ao carregar frases')
       }
     } catch (error) {
-      console.error('Erro ao buscar frases:', error)
+      setError('Erro ao carregar frases')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleAddPhrase = async () => {
+  const handleAddPhrase = async (e: React.FormEvent) => {
+    e.preventDefault()
     if (!newPhrase.trim()) return
 
     try {
       const response = await fetch('/api/phrases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: newPhrase })
+        body: JSON.stringify({ text: newPhrase }),
       })
 
       if (response.ok) {
-        await fetchPhrases()
         setNewPhrase('')
         setShowAddForm(false)
+        fetchPhrases()
+      } else {
+        setError('Erro ao adicionar frase')
       }
     } catch (error) {
-      console.error('Erro ao adicionar frase:', error)
+      setError('Erro ao adicionar frase')
     }
   }
 
   const handleEditPhrase = async (id: string) => {
-    if (!editingText.trim()) return
+    if (!editText.trim()) return
 
     try {
       const response = await fetch(`/api/phrases/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: editingText })
+        body: JSON.stringify({ text: editText }),
       })
 
       if (response.ok) {
-        await fetchPhrases()
         setEditingId(null)
-        setEditingText('')
+        setEditText('')
+        fetchPhrases()
+      } else {
+        setError('Erro ao editar frase')
       }
     } catch (error) {
-      console.error('Erro ao editar frase:', error)
+      setError('Erro ao editar frase')
     }
   }
 
@@ -81,14 +90,16 @@ export default function PhraseManagement() {
 
     try {
       const response = await fetch(`/api/phrases/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       if (response.ok) {
-        await fetchPhrases()
+        fetchPhrases()
+      } else {
+        setError('Erro ao deletar frase')
       }
     } catch (error) {
-      console.error('Erro ao deletar frase:', error)
+      setError('Erro ao deletar frase')
     }
   }
 
@@ -99,168 +110,162 @@ export default function PhraseManagement() {
     const [reorderedItem] = items.splice(result.source.index, 1)
     items.splice(result.destination.index, 0, reorderedItem)
 
-    // Update order numbers
-    const updatedItems = items.map((item, index) => ({
-      ...item,
-      order: index + 1
-    }))
-
-    setPhrases(updatedItems)
+    setPhrases(items)
 
     try {
-      await fetch('/api/phrases/reorder', {
-        method: 'POST',
+      const phraseIds = items.map(item => item.id)
+      const response = await fetch('/api/phrases/reorder', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phrases: updatedItems })
+        body: JSON.stringify({ phraseIds }),
       })
+
+      if (!response.ok) {
+        setError('Erro ao salvar nova ordem')
+        fetchPhrases() // Reverter mudanças
+      }
     } catch (error) {
-      console.error('Erro ao reordenar frases:', error)
-      await fetchPhrases() // Revert on error
+      setError('Erro ao salvar nova ordem')
+      fetchPhrases() // Reverter mudanças
     }
   }
 
+  const startEditing = (phrase: Phrase) => {
+    setEditingId(phrase.id)
+    setEditText(phrase.text)
+  }
+
+  const cancelEditing = () => {
+    setEditingId(null)
+    setEditText('')
+  }
+
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
-    )
+    return <div className="text-center py-8">Carregando...</div>
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-xl font-semibold text-gray-900">Gestão de Frases</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Gerencie as frases que aparecem no texto rolante
-          </p>
-        </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
-          >
-            <Plus size={16} className="mr-2" />
-            Adicionar Frase
-          </button>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Gerenciamento de Frases</h2>
+        <button
+          onClick={() => setShowAddForm(true)}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Adicionar Frase
+        </button>
       </div>
 
-      {/* Add Form */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
       {showAddForm && (
-        <div className="mt-6 bg-white shadow rounded-lg p-6">
-          <div className="flex space-x-4">
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <form onSubmit={handleAddPhrase} className="flex gap-2">
             <input
               type="text"
               value={newPhrase}
               onChange={(e) => setNewPhrase(e.target.value)}
               placeholder="Digite a nova frase..."
-              className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
             />
             <button
-              onClick={handleAddPhrase}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              type="submit"
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
             >
-              <Save size={16} className="mr-2" />
               Salvar
             </button>
             <button
-              onClick={() => {
-                setShowAddForm(false)
-                setNewPhrase('')
-              }}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              type="button"
+              onClick={() => setShowAddForm(false)}
+              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
             >
-              <X size={16} className="mr-2" />
               Cancelar
             </button>
-          </div>
+          </form>
         </div>
       )}
 
-      {/* Phrases List */}
-      <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-md">
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="phrases">
-            {(provided) => (
-              <ul
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="divide-y divide-gray-200"
-              >
-                {phrases.map((phrase, index) => (
-                  <Draggable key={phrase.id} draggableId={phrase.id} index={index}>
-                    {(provided) => (
-                      <li
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="phrases">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="space-y-2"
+            >
+              {phrases.map((phrase, index) => (
+                <Draggable key={phrase.id} draggableId={phrase.id} index={index}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3"
+                    >
+                      <div
                         {...provided.dragHandleProps}
-                        className="px-6 py-4 hover:bg-gray-50"
+                        className="text-gray-400 cursor-move"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <div className="text-sm text-gray-500 w-8">
-                              {phrase.order}
-                            </div>
-                            {editingId === phrase.id ? (
-                              <div className="flex-1 flex space-x-2">
-                                <input
-                                  type="text"
-                                  value={editingText}
-                                  onChange={(e) => setEditingText(e.target.value)}
-                                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                />
-                                <button
-                                  onClick={() => handleEditPhrase(phrase.id)}
-                                  className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                                >
-                                  <Save size={14} />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setEditingId(null)
-                                    setEditingText('')
-                                  }}
-                                  className="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                >
-                                  <X size={14} />
-                                </button>
-                              </div>
-                            ) : (
-                              <span className="text-sm text-gray-900 flex-1">
-                                {phrase.text}
-                              </span>
-                            )}
+                        ⋮⋮
+                      </div>
+                      
+                      {editingId === phrase.id ? (
+                        <div className="flex-1 flex gap-2">
+                          <input
+                            type="text"
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                          <button
+                            onClick={() => handleEditPhrase(phrase.id)}
+                            className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700"
+                          >
+                            <Save className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={cancelEditing}
+                            className="bg-gray-500 text-white px-3 py-2 rounded-md hover:bg-gray-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex-1">
+                            <p className="text-gray-900">{phrase.text}</p>
+                            <p className="text-sm text-gray-500">Ordem: {phrase.order}</p>
                           </div>
-                          <div className="flex space-x-2">
+                          <div className="flex gap-2">
                             <button
-                              onClick={() => {
-                                setEditingId(phrase.id)
-                                setEditingText(phrase.text)
-                              }}
-                              className="text-indigo-600 hover:text-indigo-900"
+                              onClick={() => startEditing(phrase)}
+                              className="text-blue-600 hover:text-blue-800 p-2"
                             >
-                              <Edit size={16} />
+                              <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeletePhrase(phrase.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="text-red-600 hover:text-red-800 p-2"
                             >
-                              <Trash2 size={16} />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
-                        </div>
-                      </li>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </ul>
-            )}
-          </Droppable>
-        </DragDropContext>
-      </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
     </div>
   )
 }

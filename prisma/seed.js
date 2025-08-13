@@ -62,22 +62,36 @@ async function main() {
 
   // Create admin user
   const hashedPassword = await bcrypt.hash('admin123', 12)
+  console.log('🔑 Senha hash gerada:', hashedPassword.substring(0, 20) + '...')
   
   try {
     const adminUser = await prisma.user.upsert({
       where: { email: 'admin@textorolante.com' },
-      update: {},
+      update: {
+        password: hashedPassword,
+        isadmin: true,
+        name: 'Administrador'
+      },
       create: {
         email: 'admin@textorolante.com',
         name: 'Administrador',
         password: hashedPassword,
-        isAdmin: true,
+        isadmin: true,
       },
     })
 
-    console.log('✅ Usuário admin criado:', adminUser.email)
+    console.log('✅ Usuário admin criado/atualizado:', adminUser.email)
+    console.log('📊 Dados do usuário:', {
+      id: adminUser.id,
+      email: adminUser.email,
+      name: adminUser.name,
+      isadmin: adminUser.isadmin,
+      createdat: adminUser.createdat,
+      updatedat: adminUser.updatedat
+    })
   } catch (error) {
     console.error('❌ Erro ao criar usuário admin:', error)
+    throw error
   }
 
   // Create default settings
@@ -87,7 +101,7 @@ async function main() {
       update: {},
       create: {
         id: 'default',
-        scrollSpeed: 50,
+        scrollspeed: 50,
       },
     })
 
@@ -114,7 +128,7 @@ async function main() {
           id: `sample-${i + 1}`,
           text: samplePhrases[i],
           order: i + 1,
-          isActive: true,
+          isactive: true,
         },
       })
     }

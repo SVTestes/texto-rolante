@@ -3,16 +3,19 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    let settings = await prisma.settings.findFirst()
-    
+    const settings = await prisma.settings.findUnique({
+      where: { id: 'default' },
+    })
+
     if (!settings) {
-      settings = await prisma.settings.create({
-        data: { scrollSpeed: 50 }
-      })
+      // Retornar configurações padrão se não existirem
+      return NextResponse.json({ scrollspeed: 50 })
     }
-    
+
     return NextResponse.json(settings)
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Erro ao buscar configurações:', error)
+    // Retornar configurações padrão em caso de erro
+    return NextResponse.json({ scrollspeed: 50 })
   }
 }

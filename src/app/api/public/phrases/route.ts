@@ -4,17 +4,18 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     const phrases = await prisma.phrase.findMany({
-      where: { isActive: true },
+      where: { isactive: true },
       orderBy: { order: 'asc' },
       select: {
         id: true,
         text: true,
-        order: true
-      }
+        order: true,
+      },
     })
-    
+
     return NextResponse.json(phrases)
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Erro ao buscar frases:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

@@ -1,32 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export async function PUT(request: Request) {
   try {
-    const { phrases } = await request.json()
+    const session = await getServerSession(authOptions)
     
-    if (!Array.isArray(phrases)) {
-      return NextResponse.json({ error: 'Invalid phrases data' }, { status: 400 })
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    // Update all phrases with new order
-    for (const phrase of phrases) {
-      await prisma.phrase.update({
-        where: { id: phrase.id },
-        data: { order: phrase.order }
+    const { phraseIds } = await request.json()
+    
+    if (!Array.isArray(phraseIds) || phraseIds.length === 0) {
+      return NextResponse.json({ error: 'Lista de IDs de frases é obrigatória' }, { status: 400 })
+    }
+
+    // Atualizar a ordem de todas as frases
+    const updates = phraseIds.map((id: string, index: number) => 
+      prisma.phrase.update({
+        where: { id },
+        data: { order: index + 1 },
       })
-    }
+    )
 
-    return NextResponse.json({ message: 'Phrases reordered successfully' })
+    await prisma.$transaction(updates)
+
+    return NextResponse.json({ message: 'Ordem das frases atualizada com sucesso' })
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Erro ao reordenar frases:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

@@ -15,9 +15,9 @@ model user {
   email     String   @unique
   name      String
   password  String
-  isAdmin   Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isadmin   Boolean  @default(false) @map("isadmin")
+  createdat DateTime @default(now()) @map("createdat")
+  updatedat DateTime @updatedAt @map("updatedat")
 
   @@map("user")
 }
@@ -26,17 +26,17 @@ model phrase {
   id       String @id @default(cuid())
   text     String
   order    Int
-  isActive Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isactive Boolean @default(true) @map("isactive")
+  createdat DateTime @default(now()) @map("createdat")
+  updatedat DateTime @updatedAt @map("updatedat")
 
   @@map("phrase")
 }
 
 model settings {
   id        String @id @default("default")
-  scrollSpeed Int  @default(50)
-  updatedAt DateTime @updatedAt
+  scrollspeed Int  @default(50) @map("scrollspeed")
+  updatedat DateTime @updatedAt @map("updatedat")
 
   @@map("settings")
 }

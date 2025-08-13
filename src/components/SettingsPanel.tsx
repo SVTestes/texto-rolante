@@ -1,12 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, Settings as SettingsIcon } from 'lucide-react'
+import { Save } from 'lucide-react'
+
+interface Settings {
+  id: string
+  scrollspeed: number
+  updatedat: string
+}
 
 export default function SettingsPanel() {
-  const [scrollSpeed, setScrollSpeed] = useState(50)
+  const [settings, setSettings] = useState<Settings | null>(null)
+  const [scrollspeed, setScrollspeed] = useState(50)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetchSettings()
@@ -17,103 +26,111 @@ export default function SettingsPanel() {
       const response = await fetch('/api/settings')
       if (response.ok) {
         const data = await response.json()
-        setScrollSpeed(data.scrollSpeed)
+        setSettings(data)
+        setScrollspeed(data.scrollspeed)
+      } else {
+        setError('Erro ao carregar configurações')
       }
     } catch (error) {
-      console.error('Erro ao buscar configurações:', error)
+      setError('Erro ao carregar configurações')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSave = async () => {
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
     setSaving(true)
+    setMessage('')
+    setError('')
+
     try {
       const response = await fetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scrollSpeed })
+        body: JSON.stringify({ scrollspeed }),
       })
 
       if (response.ok) {
-        alert('Configurações salvas com sucesso!')
+        const updatedSettings = await response.json()
+        setSettings(updatedSettings)
+        setMessage('Configurações salvas com sucesso!')
+        setTimeout(() => setMessage(''), 3000)
+      } else {
+        const errorData = await response.json()
+        setError(errorData.error || 'Erro ao salvar configurações')
       }
     } catch (error) {
-      console.error('Erro ao salvar configurações:', error)
-      alert('Erro ao salvar configurações')
+      setError('Erro ao salvar configurações')
     } finally {
       setSaving(false)
     }
   }
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
-    )
+    return <div className="text-center py-8">Carregando...</div>
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-xl font-semibold text-gray-900">Configurações</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Configure as opções do sistema
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Configurações do Sistema</h2>
+        <p className="mt-2 text-sm text-gray-600">
+          Configure as configurações gerais do sistema de texto rolante
+        </p>
       </div>
 
-      <div className="mt-8 bg-white shadow rounded-lg p-6">
-        <div className="space-y-6">
+      {message && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          {message}
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+
+      <div className="bg-white shadow rounded-lg p-6">
+        <form onSubmit={handleSave} className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              <SettingsIcon size={20} className="inline mr-2" />
-              Configurações do Texto Rolante
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Velocidade do Texto
-                </label>
-                <div className="flex items-center space-x-4">
-                  <input
-                    type="range"
-                    min="1"
-                    max="100"
-                    value={scrollSpeed}
-                    onChange={(e) => setScrollSpeed(parseInt(e.target.value))}
-                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                  />
-                  <span className="text-sm text-gray-600 w-12 text-center">
-                    {scrollSpeed}
-                  </span>
-                </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Lento</span>
-                  <span>Rápido</span>
-                </div>
-                <p className="text-sm text-gray-600 mt-2">
-                  Ajuste a velocidade com que o texto se move na tela. 
-                  Valores menores tornam o movimento mais lento, valores maiores mais rápido.
-                </p>
-              </div>
+            <label htmlFor="scrollspeed" className="block text-sm font-medium text-gray-700 mb-2">
+              Velocidade de Rolagem
+            </label>
+            <div className="flex items-center space-x-4">
+              <input
+                type="range"
+                id="scrollspeed"
+                min="1"
+                max="200"
+                value={scrollspeed}
+                onChange={(e) => setScrollspeed(Number(e.target.value))}
+                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+              <span className="text-lg font-semibold text-gray-900 min-w-[3rem] text-center">
+                {scrollspeed}
+              </span>
             </div>
+            <p className="mt-2 text-sm text-gray-500">
+              Velocidade de 1 (mais lento) a 200 (mais rápido)
+            </p>
           </div>
 
-          <div className="pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+            <div className="text-sm text-gray-500">
+              Última atualização: {settings?.updatedat ? new Date(settings.updatedat).toLocaleString('pt-BR') : 'Nunca'}
+            </div>
             <button
-              onClick={handleSave}
+              type="submit"
               disabled={saving}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+              className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              <Save size={16} className="mr-2" />
+              <Save className="w-4 h-4" />
               {saving ? 'Salvando...' : 'Salvar Configurações'}
             </button>
           </div>
-        </div>
+        </form>
       </div>
 
       <style jsx>{`

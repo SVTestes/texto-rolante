@@ -13,33 +13,47 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          console.log('❌ Credenciais faltando:', { email: !!credentials?.email, password: !!credentials?.password })
           return null
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email
+        try {
+          console.log('🔍 Procurando usuário:', credentials.email)
+          
+          const user = await prisma.user.findUnique({
+            where: {
+              email: credentials.email
+            }
+          })
+
+          if (!user) {
+            console.log('❌ Usuário não encontrado')
+            return null
           }
-        })
 
-        if (!user) {
+          console.log('✅ Usuário encontrado:', { id: user.id, email: user.email, isadmin: user.isadmin })
+
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          )
+
+          console.log('🔑 Senha válida:', isPasswordValid)
+
+          if (!isPasswordValid) {
+            console.log('❌ Senha inválida')
+            return null
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            isAdmin: user.isadmin, // Mapeando isadmin para isAdmin
+          }
+        } catch (error) {
+          console.error('💥 Erro durante autenticação:', error)
           return null
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
-
-        if (!isPasswordValid) {
-          return null
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          isAdmin: user.isAdmin,
         }
       }
     })
@@ -63,5 +77,6 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/login'
-  }
+  },
+  debug: true // Ativar debug para ver logs detalhados
 }
