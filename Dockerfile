@@ -31,5 +31,7 @@ RUN npm run build
 # Expor porta
 EXPOSE 3000
 
-# Comando de inicialização
-CMD ["npm", "start"]
+# Script de inicialização
+COPY start.sh ./
+RUN chmod +x start.sh
+CMD ["./start.sh"]
