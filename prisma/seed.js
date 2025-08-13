@@ -25,6 +25,28 @@ async function waitForDatabase() {
 
 async function main() {
   console.log('🌱 Iniciando seed do banco de dados...')
+  console.log('🔍 Verificando variáveis de ambiente...')
+  
+  // Verificar variáveis de ambiente
+  if (!process.env.DATABASE_URL) {
+    console.error('❌ DATABASE_URL não está definida!')
+    process.exit(1)
+  }
+  
+  if (!process.env.NEXTAUTH_SECRET) {
+    console.error('❌ NEXTAUTH_SECRET não está definida!')
+    process.exit(1)
+  }
+  
+  if (!process.env.NEXTAUTH_URL) {
+    console.error('❌ NEXTAUTH_URL não está definida!')
+    process.exit(1)
+  }
+  
+  console.log('✅ Todas as variáveis de ambiente estão configuradas')
+  console.log('🔗 DATABASE_URL:', process.env.DATABASE_URL ? '✅ Configurada' : '❌ Não configurada')
+  console.log('🔑 NEXTAUTH_SECRET:', process.env.NEXTAUTH_SECRET ? '✅ Configurada' : '❌ Não configurada')
+  console.log('🌐 NEXTAUTH_URL:', process.env.NEXTAUTH_URL ? '✅ Configurada' : '❌ Não configurada')
 
   // Aguardar conexão com o banco
   await waitForDatabase()
