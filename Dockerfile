@@ -19,12 +19,6 @@ RUN npx prisma generate
 # Copiar código fonte
 COPY . .
 
-# Configurar variáveis de ambiente
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV NODE_ENV production
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-
 # Build da aplicação
 RUN npm run build
 

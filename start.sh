@@ -6,17 +6,17 @@ echo "🚀 Iniciando Sistema de Texto Rolante..."
 echo "⏳ Aguardando banco de dados..."
 sleep 5
 
-# Configurar banco de dados (migrações + seed)
-echo "🔧 Configurando banco de dados..."
-node scripts/setup-db.js
+# Executar seed do banco de dados
+echo "🌱 Executando seed do banco de dados..."
+node prisma/seed.js
 
-# Verificar se o setup foi executado com sucesso
+# Verificar se o seed foi executado com sucesso
 if [ $? -eq 0 ]; then
-    echo "✅ Banco configurado com sucesso!"
+    echo "✅ Seed executado com sucesso!"
 else
-    echo "❌ Erro ao configurar banco, tentando novamente..."
+    echo "❌ Erro ao executar seed, tentando novamente..."
     sleep 3
-    node scripts/setup-db.js
+    node prisma/seed.js
 fi
 
 # Iniciar a aplicação
