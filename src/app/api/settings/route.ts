@@ -36,8 +36,8 @@ export async function PUT(request: Request) {
 
     const { scrollspeed } = await request.json()
     
-    if (typeof scrollspeed !== 'number' || scrollspeed < 1 || scrollspeed > 200) {
-      return NextResponse.json({ error: 'Velocidade deve ser um número entre 1 e 200' }, { status: 400 })
+    if (typeof scrollspeed !== 'number' || scrollspeed < 0.1 || scrollspeed > 10) {
+      return NextResponse.json({ error: 'Velocidade deve ser um número entre 0.1 e 10' }, { status: 400 })
     }
 
     const settings = await prisma.settings.upsert({

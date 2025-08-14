@@ -102,18 +102,24 @@ export default function SettingsPanel() {
               <input
                 type="range"
                 id="scrollspeed"
-                min="1"
-                max="200"
+                min="0.1"
+                max="10"
+                step="0.1"
                 value={scrollspeed}
                 onChange={(e) => setScrollspeed(Number(e.target.value))}
                 className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
               />
-              <span className="text-lg font-semibold text-gray-900 min-w-[3rem] text-center">
+              <span className="text-lg font-semibold text-gray-900 min-w-[4rem] text-center">
                 {scrollspeed}
               </span>
             </div>
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>Muito Lento</span>
+              <span>Muito Rápido</span>
+            </div>
             <p className="mt-2 text-sm text-gray-500">
-              Velocidade de 1 (mais lento) a 200 (mais rápido)
+              Velocidade de 0.1 (muito lento) a 10 (muito rápido). 
+              Valores menores = movimento mais lento e suave.
             </p>
           </div>
 

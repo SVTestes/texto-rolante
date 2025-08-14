@@ -14,7 +14,7 @@ interface Settings {
 
 export default function ScrollingText() {
   const [phrases, setPhrases] = useState<Phrase[]>([])
-  const [settings, setSettings] = useState<Settings>({ scrollspeed: 50 })
+  const [settings, setSettings] = useState<Settings>({ scrollspeed: 1 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -61,7 +61,9 @@ export default function ScrollingText() {
   }
 
   // Calcular a duração da animação baseada na velocidade
-  const animationDuration = Math.max(20, 100 - settings.scrollspeed) // 20s a 100s
+  // Agora com valores muito menores: 0.1 = muito lento, 10 = muito rápido
+  // Fórmula: velocidade menor = duração maior (mais lento)
+  const animationDuration = Math.max(30, 120 - (settings.scrollspeed * 10)) // 30s a 110s
 
   return (
     <div className="min-h-screen bg-white overflow-hidden">

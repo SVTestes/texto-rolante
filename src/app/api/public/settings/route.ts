@@ -9,13 +9,13 @@ export async function GET() {
 
     if (!settings) {
       // Retornar configurações padrão se não existirem
-      return NextResponse.json({ scrollspeed: 50 })
+      return NextResponse.json({ scrollspeed: 1 })
     }
 
     return NextResponse.json(settings)
   } catch (error) {
     console.error('Erro ao buscar configurações:', error)
     // Retornar configurações padrão em caso de erro
-    return NextResponse.json({ scrollspeed: 50 })
+    return NextResponse.json({ scrollspeed: 1 })
   }
 }
