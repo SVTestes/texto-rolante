@@ -14,6 +14,13 @@ export default function ScrollingText() {
 
   useEffect(() => {
     fetchPhrases()
+    
+    // Recarregar frases a cada 10 segundos para detectar mudanças
+    const interval = setInterval(() => {
+      fetchPhrases()
+    }, 10000)
+
+    return () => clearInterval(interval)
   }, [])
 
   const fetchPhrases = async () => {
@@ -46,8 +53,10 @@ export default function ScrollingText() {
     )
   }
 
-  // Velocidade fixa em 70 segundos por ciclo completo
-  const animationDuration = 70
+  // Velocidade dinâmica: 8 segundos por frase
+  const secondsPerPhrase = 8
+  const totalPhrases = phrases.length
+  const animationDuration = secondsPerPhrase * totalPhrases
 
   return (
     <div className="min-h-screen bg-white overflow-hidden">
