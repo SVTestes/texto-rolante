@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface Phrase {
   id: string
@@ -11,6 +11,8 @@ interface Phrase {
 export default function ScrollingText() {
   const [phrases, setPhrases] = useState<Phrase[]>([])
   const [loading, setLoading] = useState(true)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const animationRef = useRef<number>()
 
   useEffect(() => {
     fetchPhrases()
@@ -22,6 +24,60 @@ export default function ScrollingText() {
 
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    if (phrases.length === 0 || !containerRef.current) return
+
+    const container = containerRef.current
+    const textElement = container.querySelector('.scrolling-text') as HTMLElement
+    if (!textElement) return
+
+    // Reset position
+    textElement.style.transform = 'translateX(100%)'
+    
+    // Velocidade: 60 segundos para o ciclo completo
+    const totalDuration = 60
+    
+    // Calcular pixels por segundo para movimento real
+    const textWidth = textElement.scrollWidth
+    const containerWidth = container.clientWidth
+    const totalDistance = textWidth + containerWidth // Da direita até sair pela esquerda
+    const pixelsPerSecond = totalDistance / totalDuration
+
+    let startTime: number | null = null
+    let currentPosition = containerWidth // Começa da direita
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp
+      
+      const elapsed = timestamp - startTime
+      const elapsedSeconds = elapsed / 1000
+      
+      // Calcular nova posição
+      currentPosition = containerWidth - (elapsedSeconds * pixelsPerSecond)
+      
+      // Aplicar transformação
+      textElement.style.transform = `translateX(${currentPosition}px)`
+      
+      // Verificar se precisa reiniciar
+      if (currentPosition < -textWidth) {
+        // Reiniciar animação
+        startTime = timestamp
+        currentPosition = containerWidth
+        textElement.style.transform = `translateX(${currentPosition}px)`
+      }
+      
+      animationRef.current = requestAnimationFrame(animate)
+    }
+
+    animationRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [phrases])
 
   const fetchPhrases = async () => {
     try {
@@ -53,20 +109,10 @@ export default function ScrollingText() {
     )
   }
 
-  // Velocidade ajustada: 60 segundos para o ciclo completo
-  const animationDuration = 60
-
   return (
     <div className="min-h-screen bg-white overflow-hidden">
-      <div className="relative h-screen flex items-center">
-        <div 
-          className="whitespace-nowrap text-4xl md:text-6xl lg:text-8xl font-bold text-gray-800 animate-scroll"
-          style={{
-            animationDuration: `${animationDuration}s`,
-            animationTimingFunction: 'linear',
-            animationIterationCount: 'infinite'
-          }}
-        >
+      <div ref={containerRef} className="relative h-screen flex items-center">
+        <div className="scrolling-text whitespace-nowrap text-4xl md:text-6xl lg:text-8xl font-bold text-gray-800">
           {/* Primeira sequência de frases */}
           {phrases.map((phrase, index) => (
             <span key={`first-${phrase.id}`} className="inline-block mr-16">
@@ -118,21 +164,6 @@ export default function ScrollingText() {
           ))}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes scroll {
-          0% {
-            transform: translateX(100%);
-          }
-          100% {
-            transform: translateX(-100%);
-          }
-        }
-        
-        .animate-scroll {
-          animation-name: scroll;
-        }
-      `}</style>
     </div>
   )
 }
