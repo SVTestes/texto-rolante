@@ -76,17 +76,29 @@ export default function ScrollingText() {
             animationIterationCount: 'infinite'
           }}
         >
+          {/* Primeira sequência de frases */}
           {phrases.map((phrase, index) => (
-            <span key={phrase.id} className="inline-block mr-16">
+            <span key={`first-${phrase.id}`} className="inline-block mr-16">
               {phrase.text}
               {index < phrases.length - 1 && (
                 <span className="inline-block mx-8 text-gray-300">•</span>
               )}
             </span>
           ))}
-          {/* Duplicar frases para criar loop contínuo */}
+          
+          {/* Segunda sequência de frases (para transição suave) */}
           {phrases.map((phrase, index) => (
-            <span key={`${phrase.id}-duplicate`} className="inline-block mr-16">
+            <span key={`second-${phrase.id}`} className="inline-block mr-16">
+              {phrase.text}
+              {index < phrases.length - 1 && (
+                <span className="inline-block mx-8 text-gray-300">•</span>
+              )}
+            </span>
+          ))}
+          
+          {/* Terceira sequência de frases (garantir continuidade) */}
+          {phrases.map((phrase, index) => (
+            <span key={`third-${phrase.id}`} className="inline-block mr-16">
               {phrase.text}
               {index < phrases.length - 1 && (
                 <span className="inline-block mx-8 text-gray-300">•</span>
@@ -99,10 +111,10 @@ export default function ScrollingText() {
       <style jsx>{`
         @keyframes scroll {
           0% {
-            transform: translateX(100%);
+            transform: translateX(100vw);
           }
           100% {
-            transform: translateX(-100%);
+            transform: translateX(-100vw);
           }
         }
         
