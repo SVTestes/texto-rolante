@@ -122,10 +122,10 @@ export default function ScrollingText() {
       <style jsx>{`
         @keyframes scroll {
           0% {
-            transform: translateX(100vw);
+            transform: translateX(100%);
           }
           100% {
-            transform: translateX(-100vw);
+            transform: translateX(-100%);
           }
         }
         
