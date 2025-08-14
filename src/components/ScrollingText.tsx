@@ -53,13 +53,13 @@ export default function ScrollingText() {
     )
   }
 
-  // Velocidade dinâmica: 8 segundos por frase (mais rápida)
-  const secondsPerPhrase = 8
+  // Velocidade otimizada: 3 segundos por frase (muito mais rápida)
+  const secondsPerPhrase = 3
   const totalPhrases = phrases.length
   
-  // Calcular duração baseada no número de frases, mas com mínimo e máximo
+  // Calcular duração baseada no número de frases, mas com limites mais apertados
   const baseDuration = secondsPerPhrase * totalPhrases
-  const animationDuration = Math.max(40, Math.min(baseDuration, 120)) // Entre 40s e 120s
+  const animationDuration = Math.max(20, Math.min(baseDuration, 60)) // Entre 20s e 60s
 
   return (
     <div className="min-h-screen bg-white overflow-hidden">
