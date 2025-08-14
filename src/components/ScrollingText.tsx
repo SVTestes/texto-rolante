@@ -11,7 +11,6 @@ interface Phrase {
 export default function ScrollingText() {
   const [phrases, setPhrases] = useState<Phrase[]>([])
   const [loading, setLoading] = useState(true)
-  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0)
 
   useEffect(() => {
     fetchPhrases()
@@ -23,17 +22,6 @@ export default function ScrollingText() {
 
     return () => clearInterval(interval)
   }, [])
-
-  useEffect(() => {
-    if (phrases.length === 0) return
-
-    // Timer para cada frase: 10 segundos por frase
-    const timer = setTimeout(() => {
-      setCurrentPhraseIndex((prev) => (prev + 1) % phrases.length)
-    }, 10000)
-
-    return () => clearTimeout(timer)
-  }, [currentPhraseIndex, phrases.length])
 
   const fetchPhrases = async () => {
     try {
@@ -65,40 +53,71 @@ export default function ScrollingText() {
     )
   }
 
-  const currentPhrase = phrases[currentPhraseIndex]
-  const nextPhraseIndex = (currentPhraseIndex + 1) % phrases.length
-  const nextPhrase = phrases[nextPhraseIndex]
+  // Velocidade: 10 segundos por frase
+  const secondsPerPhrase = 10
+  const totalPhrases = phrases.length
+  
+  // Calcular duração total da animação
+  // Cada frase deve levar 10 segundos para passar completamente pela tela
+  const animationDuration = secondsPerPhrase * totalPhrases
 
   return (
     <div className="min-h-screen bg-white overflow-hidden">
-      <div className="relative h-screen flex items-center justify-center">
-        {/* Frase atual */}
-        <div className="text-center">
-          <div className="text-4xl md:text-6xl lg:text-8xl font-bold text-gray-800 mb-8">
-            {currentPhrase.text}
-          </div>
+      <div className="relative h-screen flex items-center">
+        <div 
+          className="whitespace-nowrap text-4xl md:text-6xl lg:text-8xl font-bold text-gray-800 animate-scroll"
+          style={{
+            animationDuration: `${animationDuration}s`,
+            animationTimingFunction: 'linear',
+            animationIterationCount: 'infinite'
+          }}
+        >
+          {/* Primeira sequência de frases */}
+          {phrases.map((phrase, index) => (
+            <span key={`first-${phrase.id}`} className="inline-block mr-16">
+              {phrase.text}
+              {index < phrases.length - 1 && (
+                <span className="inline-block mx-8 text-gray-300">•</span>
+              )}
+            </span>
+          ))}
           
-          {/* Indicador de progresso */}
-          <div className="w-64 h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-indigo-600 transition-all duration-1000 ease-linear"
-              style={{ width: '100%' }}
-            />
-          </div>
+          {/* Segunda sequência de frases (para transição suave) */}
+          {phrases.map((phrase, index) => (
+            <span key={`second-${phrase.id}`} className="inline-block mr-16">
+              {phrase.text}
+              {index < phrases.length - 1 && (
+                <span className="inline-block mx-8 text-gray-300">•</span>
+              )}
+            </span>
+          ))}
           
-          {/* Informações da frase */}
-          <div className="mt-4 text-lg text-gray-600">
-            Frase {currentPhraseIndex + 1} de {phrases.length}
-          </div>
-          
-          {/* Próxima frase (pequena) */}
-          {phrases.length > 1 && (
-            <div className="mt-8 text-xl text-gray-400">
-              Próxima: {nextPhrase.text}
-            </div>
-          )}
+          {/* Terceira sequência de frases (garantir continuidade) */}
+          {phrases.map((phrase, index) => (
+            <span key={`third-${phrase.id}`} className="inline-block mr-16">
+              {phrase.text}
+              {index < phrases.length - 1 && (
+                <span className="inline-block mx-8 text-gray-300">•</span>
+              )}
+            </span>
+          ))}
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes scroll {
+          0% {
+            transform: translateX(100vw);
+          }
+          100% {
+            transform: translateX(-100vw);
+          }
+        }
+        
+        .animate-scroll {
+          animation-name: scroll;
+        }
+      `}</style>
     </div>
   )
 }
