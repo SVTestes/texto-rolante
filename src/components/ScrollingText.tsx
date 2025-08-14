@@ -35,8 +35,8 @@ export default function ScrollingText() {
     // Reset position
     textElement.style.transform = 'translateX(100%)'
     
-    // Velocidade: 90 segundos para o ciclo completo (um pouco mais lento)
-    const totalDuration = 90
+    // Velocidade: 120 segundos para o ciclo completo (um pouco mais lento)
+    const totalDuration = 120
     
     // Calcular pixels por segundo para movimento real
     const textWidth = textElement.scrollWidth
@@ -59,8 +59,9 @@ export default function ScrollingText() {
       // Aplicar transformação
       textElement.style.transform = `translateX(${currentPosition}px)`
       
-      // Verificar se precisa reiniciar (quando a primeira frase da sequência sair completamente)
-      if (currentPosition < -(textWidth / 5)) { // textWidth / 5 = largura de uma sequência
+      // CORREÇÃO: Deixar passar TODAS as 5 sequências antes de reiniciar
+      // textWidth = largura total de todas as 5 sequências
+      if (currentPosition < -textWidth) {
         // Reiniciar animação
         startTime = timestamp
         currentPosition = containerWidth
