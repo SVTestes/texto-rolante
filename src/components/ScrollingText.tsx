@@ -53,8 +53,8 @@ export default function ScrollingText() {
     )
   }
 
-  // Velocidade ideal: 45 segundos para o ciclo completo (rápida mas legível)
-  const animationDuration = 45
+  // Velocidade muito mais rápida: 15 segundos para o ciclo completo
+  const animationDuration = 15
 
   return (
     <div className="min-h-screen bg-white overflow-hidden">
