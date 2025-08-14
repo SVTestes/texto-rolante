@@ -46,9 +46,8 @@ export default function ScrollingText() {
     )
   }
 
-  // Velocidade fixa em 2
-  const scrollspeed = 2
-  const animationDuration = Math.max(30, 120 - (scrollspeed * 10)) // 100 segundos
+  // Velocidade fixa em 70 segundos por ciclo completo
+  const animationDuration = 70
 
   return (
     <div className="min-h-screen bg-white overflow-hidden">
