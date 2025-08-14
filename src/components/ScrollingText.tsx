@@ -53,7 +53,7 @@ export default function ScrollingText() {
     )
   }
 
-  // Velocidade muito mais rápida: 15 segundos para o ciclo completo
+  // Velocidade perfeita: 15 segundos para o ciclo completo
   const animationDuration = 15
 
   return (
@@ -90,6 +90,26 @@ export default function ScrollingText() {
           {/* Terceira sequência de frases (garantir continuidade) */}
           {phrases.map((phrase, index) => (
             <span key={`third-${phrase.id}`} className="inline-block mr-16">
+              {phrase.text}
+              {index < phrases.length - 1 && (
+                <span className="inline-block mx-8 text-gray-300">•</span>
+              )}
+            </span>
+          ))}
+          
+          {/* Quarta sequência de frases (loop perfeito) */}
+          {phrases.map((phrase, index) => (
+            <span key={`fourth-${phrase.id}`} className="inline-block mr-16">
+              {phrase.text}
+              {index < phrases.length - 1 && (
+                <span className="inline-block mx-8 text-gray-300">•</span>
+              )}
+            </span>
+          ))}
+          
+          {/* Quinta sequência de frases (continuidade infinita) */}
+          {phrases.map((phrase, index) => (
+            <span key={`fifth-${phrase.id}`} className="inline-block mr-16">
               {phrase.text}
               {index < phrases.length - 1 && (
                 <span className="inline-block mx-8 text-gray-300">•</span>
