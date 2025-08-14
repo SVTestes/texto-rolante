@@ -60,19 +60,20 @@ async function main() {
     throw error
   }
 
-  // Create admin user
+  // Create admin user with FORCED password update
   const hashedPassword = await bcrypt.hash('admin123', 12)
   console.log('🔑 Senha hash gerada:', hashedPassword.substring(0, 20) + '...')
   
   try {
-    const adminUser = await prisma.user.upsert({
-      where: { email: 'admin@textorolante.com' },
-      update: {
-        password: hashedPassword,
-        isadmin: true,
-        name: 'Administrador'
-      },
-      create: {
+    // FORÇAR atualização da senha - deletar usuário existente e recriar
+    console.log('🗑️ Deletando usuário admin existente...')
+    await prisma.user.deleteMany({
+      where: { email: 'admin@textorolante.com' }
+    })
+    
+    console.log('✨ Criando novo usuário admin...')
+    const adminUser = await prisma.user.create({
+      data: {
         email: 'admin@textorolante.com',
         name: 'Administrador',
         password: hashedPassword,
@@ -80,7 +81,7 @@ async function main() {
       },
     })
 
-    console.log('✅ Usuário admin criado/atualizado:', adminUser.email)
+    console.log('✅ Usuário admin criado com sucesso:', adminUser.email)
     console.log('📊 Dados do usuário:', {
       id: adminUser.id,
       email: adminUser.email,
