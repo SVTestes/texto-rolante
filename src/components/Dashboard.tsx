@@ -1,106 +1,68 @@
 'use client'
 
 import { useState } from 'react'
-import { useSession, signOut } from 'next-auth/react'
-import { Users, MessageSquare, Settings, LogOut } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { MessageSquare, Users, Settings } from 'lucide-react'
 import UserManagement from './UserManagement'
 import PhraseManagement from './PhraseManagement'
-import SettingsPanel from './SettingsPanel'
 
 export default function Dashboard() {
   const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState('phrases')
 
   if (!session) {
-    return null
+    return <div>Carregando...</div>
   }
 
   const isAdmin = session.user?.isAdmin
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">
-                Sistema de Texto Rolante
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                Olá, {session.user?.name}
-              </span>
-              <button
-                onClick={() => signOut()}
-                className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900"
-              >
-                <LogOut size={16} />
-                <span>Sair</span>
-              </button>
-            </div>
-          </div>
+      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Painel de Controle</h1>
+          <p className="mt-2 text-gray-600">
+            Bem-vindo, {session.user?.name}! Gerencie suas frases e usuários.
+          </p>
         </div>
-      </header>
 
-      {/* Navigation */}
-      <nav className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
+        {/* Tabs */}
+        <div className="border-b border-gray-200 mb-8">
+          <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('phrases')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                 activeTab === 'phrases'
                   ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <div className="flex items-center space-x-2">
-                <MessageSquare size={16} />
-                <span>Gestão de Frases</span>
-              </div>
+              <MessageSquare className="w-4 h-4" />
+              Gestão de Frases
             </button>
             
             {isAdmin && (
               <button
                 onClick={() => setActiveTab('users')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                   activeTab === 'users'
                     ? 'border-indigo-500 text-indigo-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-center space-x-2">
-                  <Users size={16} />
-                  <span>Gestão de Usuários</span>
-                </div>
+                <Users className="w-4 h-4" />
+                Gestão de Usuários
               </button>
             )}
-            
-            <button
-              onClick={() => setActiveTab('settings')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'settings'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Settings size={16} />
-                <span>Configurações</span>
-              </div>
-            </button>
-          </div>
+          </nav>
         </div>
-      </nav>
 
-      {/* Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {activeTab === 'phrases' && <PhraseManagement />}
-        {activeTab === 'users' && isAdmin && <UserManagement />}
-        {activeTab === 'settings' && <SettingsPanel />}
-      </main>
+        {/* Tab Content */}
+        <div>
+          {activeTab === 'phrases' && <PhraseManagement />}
+          {activeTab === 'users' && isAdmin && <UserManagement />}
+        </div>
+      </div>
     </div>
   )
 }
