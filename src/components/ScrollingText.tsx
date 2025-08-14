@@ -101,7 +101,7 @@ export default function ScrollingText() {
         .scrolling-text {
           display: inline-block;
           white-space: nowrap;
-          animation: scroll 120s linear infinite;
+          animation: scroll 150s linear infinite;
           font-size: 4rem;
           font-weight: bold;
           color: #1f2937;
