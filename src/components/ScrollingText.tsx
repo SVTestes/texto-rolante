@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface Phrase {
   id: string
@@ -11,6 +11,8 @@ interface Phrase {
 export default function ScrollingText() {
   const [phrases, setPhrases] = useState<Phrase[]>([])
   const [loading, setLoading] = useState(true)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const animationRef = useRef<number>()
 
   useEffect(() => {
     fetchPhrases()
@@ -22,6 +24,62 @@ export default function ScrollingText() {
 
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    if (phrases.length === 0 || !containerRef.current) return
+
+    const container = containerRef.current
+    const textElement = container.querySelector('.scrolling-text') as HTMLElement
+    if (!textElement) return
+
+    // Reset position
+    textElement.style.transform = 'translateX(100vw)'
+    
+    // Velocidade: 10 segundos por frase
+    const secondsPerPhrase = 10
+    const totalPhrases = phrases.length
+    const totalDuration = secondsPerPhrase * totalPhrases
+    
+    // Calcular pixels por segundo
+    const textWidth = textElement.scrollWidth
+    const screenWidth = window.innerWidth
+    const totalDistance = textWidth + screenWidth // Da direita até sair pela esquerda
+    const pixelsPerSecond = totalDistance / totalDuration
+
+    let startTime: number | null = null
+    let currentPosition = screenWidth // Começa da direita
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp
+      
+      const elapsed = timestamp - startTime
+      const elapsedSeconds = elapsed / 1000
+      
+      // Calcular nova posição
+      currentPosition = screenWidth - (elapsedSeconds * pixelsPerSecond)
+      
+      // Aplicar transformação
+      textElement.style.transform = `translateX(${currentPosition}px)`
+      
+      // Verificar se precisa reiniciar
+      if (currentPosition < -textWidth) {
+        // Reiniciar animação
+        startTime = timestamp
+        currentPosition = screenWidth
+        textElement.style.transform = `translateX(${currentPosition}px)`
+      }
+      
+      animationRef.current = requestAnimationFrame(animate)
+    }
+
+    animationRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [phrases])
 
   const fetchPhrases = async () => {
     try {
@@ -53,25 +111,10 @@ export default function ScrollingText() {
     )
   }
 
-  // Velocidade: 10 segundos por frase
-  const secondsPerPhrase = 10
-  const totalPhrases = phrases.length
-  
-  // Calcular duração total da animação
-  // Cada frase deve levar 10 segundos para passar completamente pela tela
-  const animationDuration = secondsPerPhrase * totalPhrases
-
   return (
     <div className="min-h-screen bg-white overflow-hidden">
-      <div className="relative h-screen flex items-center">
-        <div 
-          className="whitespace-nowrap text-4xl md:text-6xl lg:text-8xl font-bold text-gray-800 animate-scroll"
-          style={{
-            animationDuration: `${animationDuration}s`,
-            animationTimingFunction: 'linear',
-            animationIterationCount: 'infinite'
-          }}
-        >
+      <div ref={containerRef} className="relative h-screen flex items-center">
+        <div className="scrolling-text whitespace-nowrap text-4xl md:text-6xl lg:text-8xl font-bold text-gray-800">
           {/* Primeira sequência de frases */}
           {phrases.map((phrase, index) => (
             <span key={`first-${phrase.id}`} className="inline-block mr-16">
@@ -103,21 +146,6 @@ export default function ScrollingText() {
           ))}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes scroll {
-          0% {
-            transform: translateX(100vw);
-          }
-          100% {
-            transform: translateX(-100vw);
-          }
-        }
-        
-        .animate-scroll {
-          animation-name: scroll;
-        }
-      `}</style>
     </div>
   )
 }
