@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { MessageSquare, Users, Eye, LogOut } from 'lucide-react'
 import UserManagement from './UserManagement'
 import PhraseManagement from './PhraseManagement'
 
 export default function Dashboard() {
-  const { data: session, signOut } = useSession()
+  const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState('phrases')
 
   if (!session) {
@@ -15,6 +15,10 @@ export default function Dashboard() {
   }
 
   const isAdmin = session.user?.isAdmin
+
+  const handleSignOut = () => {
+    signOut()
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -29,8 +33,9 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <a
-                href="/display"
+                href="https://texto-rolante-production.up.railway.app/display"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
               >
                 <Eye className="w-4 h-4" />
@@ -40,7 +45,7 @@ export default function Dashboard() {
                 Olá, {session.user?.name}
               </span>
               <button
-                onClick={() => signOut()}
+                onClick={handleSignOut}
                 className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
               >
                 <LogOut className="w-4 h-4" />
