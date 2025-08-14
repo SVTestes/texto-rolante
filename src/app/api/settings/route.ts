@@ -19,6 +19,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Configurações não encontradas' }, { status: 404 })
     }
 
+    console.log('🔍 GET Settings:', settings)
     return NextResponse.json(settings)
   } catch (error) {
     console.error('Erro ao buscar configurações:', error)
@@ -35,6 +36,7 @@ export async function PUT(request: Request) {
     }
 
     const { scrollspeed } = await request.json()
+    console.log('📝 PUT Settings - Nova velocidade:', scrollspeed)
     
     if (typeof scrollspeed !== 'number' || scrollspeed < 0.1 || scrollspeed > 10) {
       return NextResponse.json({ error: 'Velocidade deve ser um número entre 0.1 e 10' }, { status: 400 })
@@ -49,6 +51,7 @@ export async function PUT(request: Request) {
       },
     })
 
+    console.log('✅ Settings salvas:', settings)
     return NextResponse.json(settings)
   } catch (error) {
     console.error('Erro ao atualizar configurações:', error)

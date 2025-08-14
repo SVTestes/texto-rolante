@@ -19,6 +19,13 @@ export default function ScrollingText() {
 
   useEffect(() => {
     fetchData()
+    
+    // Recarregar configurações a cada 5 segundos para detectar mudanças
+    const interval = setInterval(() => {
+      fetchSettings()
+    }, 5000)
+
+    return () => clearInterval(interval)
   }, [])
 
   const fetchData = async () => {
@@ -35,12 +42,26 @@ export default function ScrollingText() {
 
       if (settingsResponse.ok) {
         const settingsData = await settingsResponse.json()
+        console.log('🔄 Display - Novas configurações carregadas:', settingsData)
         setSettings(settingsData)
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/public/settings')
+      if (response.ok) {
+        const settingsData = await response.json()
+        console.log('🔄 Display - Verificando configurações:', settingsData)
+        setSettings(settingsData)
+      }
+    } catch (error) {
+      console.error('Erro ao verificar configurações:', error)
     }
   }
 
@@ -64,6 +85,8 @@ export default function ScrollingText() {
   // Agora com valores muito menores: 0.1 = muito lento, 10 = muito rápido
   // Fórmula: velocidade menor = duração maior (mais lento)
   const animationDuration = Math.max(30, 120 - (settings.scrollspeed * 10)) // 30s a 110s
+  
+  console.log('🎬 Display - Velocidade:', settings.scrollspeed, 'Duração:', animationDuration)
 
   return (
     <div className="min-h-screen bg-white overflow-hidden">

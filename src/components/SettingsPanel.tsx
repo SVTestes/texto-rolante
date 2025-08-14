@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save } from 'lucide-react'
+import { Save, Play, Zap, Snail } from 'lucide-react'
 
 interface Settings {
   id: string
@@ -11,7 +11,7 @@ interface Settings {
 
 export default function SettingsPanel() {
   const [settings, setSettings] = useState<Settings | null>(null)
-  const [scrollspeed, setScrollspeed] = useState(50)
+  const [scrollspeed, setScrollspeed] = useState(1)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -54,8 +54,8 @@ export default function SettingsPanel() {
       if (response.ok) {
         const updatedSettings = await response.json()
         setSettings(updatedSettings)
-        setMessage('Configurações salvas com sucesso!')
-        setTimeout(() => setMessage(''), 3000)
+        setMessage(`✅ Configurações salvas! Velocidade: ${scrollspeed}`)
+        setTimeout(() => setMessage(''), 5000)
       } else {
         const errorData = await response.json()
         setError(errorData.error || 'Erro ao salvar configurações')
@@ -65,6 +65,12 @@ export default function SettingsPanel() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const testSpeed = (speed: number) => {
+    setScrollspeed(speed)
+    setMessage(`🚀 Velocidade de teste definida: ${speed}`)
+    setTimeout(() => setMessage(''), 3000)
   }
 
   if (loading) {
@@ -98,6 +104,35 @@ export default function SettingsPanel() {
             <label htmlFor="scrollspeed" className="block text-sm font-medium text-gray-700 mb-2">
               Velocidade de Rolagem
             </label>
+            
+            {/* Botões de teste rápido */}
+            <div className="flex gap-2 mb-4">
+              <button
+                type="button"
+                onClick={() => testSpeed(0.1)}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+              >
+                <Snail className="w-4 h-4" />
+                Muito Lento (0.1)
+              </button>
+              <button
+                type="button"
+                onClick={() => testSpeed(1)}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200"
+              >
+                <Play className="w-4 h-4" />
+                Lento (1.0)
+              </button>
+              <button
+                type="button"
+                onClick={() => testSpeed(5)}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
+              >
+                <Zap className="w-4 h-4" />
+                Médio (5.0)
+              </button>
+            </div>
+            
             <div className="flex items-center space-x-4">
               <input
                 type="range"
